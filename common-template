@@ -2,28 +2,46 @@
 
 ### For new installation: adapt paths to dependencies
 
-PATH=/***PATH/TO***/niftyreg/bin:$PATH
+software_dir="$HOME/software"
+nifty_reg_bin_dir="$software_dir/niftyreg/bin"
+nifty_seg_bin_dir="$software_dir/niftyseg/bin"
+FSLDIR="/usr/share/fsl/5.0/"
+irtk_bin_dir="$HOME/software/IRTK/bin"
+slicer_modules=$software_dir/slicer/Slicer-4.6.2-linux-amd64/lib/Slicer-4.6/cli-modules/
 
-PATH=/***PATH/TO***/niftyseg/bin:$PATH
 
-slicer_modules=Slicer-4.6.2-linux-amd64/lib/Slicer-4.6/cli-modules
-PATH=/**PATH/TO***/slicer/$slicer_modules:$PATH
+##### ------ Do Not Modify under this line -----------
 
-LD_LIBRARY_PATH=/***PATH/TO/slicer/$slicer_modules:/***PATH/TO***/slicer/$slicer_modules/..:$LD_LIBRARY_PATH
+
+PATH=$nifty_reg_bin_dir:$PATH
+
+
+PATH=$nifty_seg_bin_dir:$PATH
+
+
+PATH=$irtk_bin_dir:$PATH
+
+
+
+
+PATH=$slicer_modules:$PATH
+
+LD_LIBRARY_PATH=$slicer_modules:$LD_LIBRARY_PATH
+
 
 
 ### FSL -- own installation (no package)
-FSLDIR=/***PATH/TO***/fsl/build/fsl
 . $FSLDIR/etc/fslconf/fsl.sh
 PATH=$FSLDIR/bin:$PATH
-export FSLDIR 
+export FSLDIR
 
 ### FSL -- installation from .deb package
-. /etc/fsl/fsl.sh
+#. /etc/fsl/fsl.sh
 
 export PATH LD_LIBRARY_PATH
 
-
+echo "$PATH\n\n"
+echo "$LD_LIBRARY_PATH\n\n"
 # Functions etc. -- no adjustments normally necessary below this line
 
 msg () {
@@ -47,10 +65,10 @@ normalpath () {
     local filetype dir bas ret
     [[ $s == ${s::400} ]] || fatal "Option path too long"
     [[ $s == ${s//[^[:print:]]/} ]] || fatal "Non-printables in path"
-    [[ -e $s ]] && filetype=$(file $s) 
-    if [[ $filetype == "directory" ]] 
+    [[ -e $s ]] && filetype=$(file $s)
+    if [[ $filetype == "directory" ]]
 	then ret=$(cd $s && pwd)
-	else 
+	else
 	dir=$(dirname "$s")
 	bas=$(basename "$s")
 	ret=$(cd $dir && pwd)/$bas
@@ -59,5 +77,3 @@ normalpath () {
 }
 
 set -e   # Terminate script at first error
-
-
