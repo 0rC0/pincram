@@ -9,18 +9,18 @@ pn=$(basename $0)
 commandline="$pn $*"
 
 # Parameter handling
-usage () { 
+usage () {
 cat <<EOF
-pincram version 0.2 
+pincram version 0.2
 
-Copyright (C) 2012-2015 Rolf A. Heckemann 
-Web site: http://www.soundray.org/pincram 
+Copyright (C) 2012-2015 Rolf A. Heckemann
+Web site: http://www.soundray.org/pincram
 
-Usage: $0 <input> <options> <-result result.nii.gz> -altresult altresult.nii.gz \\ 
-                       [-probresult probresult.nii.gz] \\ 
-                       [-workdir working_directory] [-savewd] \\ 
-                       [-atlas atlas_directory | -atlas file.csv] [-atlasn N ] \\ 
-                       [-levels {1..3}] [-par max_parallel_jobs] [-ref ref.nii.gz] 
+Usage: $0 <input> <options> <-result result.nii.gz> -altresult altresult.nii.gz \\
+                       [-probresult probresult.nii.gz] \\
+                       [-workdir working_directory] [-savewd] \\
+                       [-atlas atlas_directory | -atlas file.csv] [-atlasn N ] \\
+                       [-levels {1..3}] [-par max_parallel_jobs] [-ref ref.nii.gz]
 
 <input>     : T1-weighted magnetic resonance image in gzipped NIfTI format.
 
@@ -36,11 +36,11 @@ Usage: $0 <input> <options> <-result result.nii.gz> -altresult altresult.nii.gz 
               will be deleted after processing. Set this flag to keep intermediate files.
 
 -atlas      : Atlas directory.
-              Has to contain limages/full/m{1..n}.nii.gz, lmasks/full/m{1..n}.nii.gz and posnorm/m{1..n}.dof.gz 
-              Alternatively, it can point to a csv spreadsheet: first row should be base directory for atlas 
-              files. Entries should be relative to base directory. Each row refers to one atlas.  
-              Column 1: atlasname, column 2: full image, column 3: margin image, column 4: mask, column 5: transformation 
-              (.dof format) for positional normalization. Atlasname should be unique across entries. 
+              Has to contain limages/full/m{1..n}.nii.gz, lmasks/full/m{1..n}.nii.gz and posnorm/m{1..n}.dof.gz
+              Alternatively, it can point to a csv spreadsheet: first row should be base directory for atlas
+              files. Entries should be relative to base directory. Each row refers to one atlas.
+              Column 1: atlasname, column 2: full image, column 3: margin image, column 4: mask, column 5: transformation
+              (.dof format) for positional normalization. Atlasname should be unique across entries.
 
 -tpn        : Rigid transformation for positional normalization of the target image (optional)
 
@@ -113,7 +113,7 @@ echo "Writing brain label to $result"
 
 assess() {
     local glabels="$1"
-    if [ -e ref.nii.gz ] ; then 
+    if [ -e ref.nii.gz ] ; then
 	transformation "$glabels" assess.nii.gz -target ref.nii.gz >>noisy.log 2>&1
 	echo -e "${glabels}:\t\t"$(labelStats ref.nii.gz assess.nii.gz -false)
     fi
@@ -124,11 +124,11 @@ assess() {
 mkdir -p "$workdir"
 td=$(mktemp -d "$workdir/$(basename $0)-c$exclude.XXXXXX") || fatal "Could not create working directory in $workdir"
 export PINCRAM_WORKDIR=$td
-trap 'if [[ $savewd != 1 ]] ; then rm -rf "$td" ; fi' 0 1 15 
+trap 'if [[ $savewd != 1 ]] ; then rm -rf "$td" ; fi' 0 1 15
 cd "$td" || fatal "Error: cannot cd to temp directory $td"
 
 if [[ -d "$atlas" ]] ; then
-    if [[ -e "$atlas"/atlases.csv ]] ; then 
+    if [[ -e "$atlas"/atlases.csv ]] ; then
 	atlas="$atlas"/atlases.csv
     else
 	"$cdir"/atlas-csv-gen.sh "$atlas" atlases.csv
@@ -172,7 +172,7 @@ for level in $(seq 0 $maxlevel) ; do
     echo "Level $thislevel"
     [[ -e $td/job.conf ]] && rm $td/job.conf
     for srcindex in $(cat selection-$prevlevel.csv) ; do
-    
+
 	set -- $(head -n $[$srcindex+1] $atlas | tail -n 1 | tr ',' ' ')
 	atlasname=$1 ; shift
 	src=$atlasbase/$1 ; shift
@@ -184,7 +184,7 @@ for level in $(seq 0 $maxlevel) ; do
 	if [[ $level -ge 2 ]] ; then src=$mrg ; fi
 	srctr="$PWD"/srctr-$thislevel-s$srcindex.nii.gz
 	masktr="$PWD"/masktr-$thislevel-s$srcindex.nii.gz
-	dofin="$PWD"/reg-s$srcindex-$prevlevel.dof.gz 
+	dofin="$PWD"/reg-s$srcindex-$prevlevel.dof.gz
 	dofout="$PWD"/reg-s$srcindex-$thislevel.dof.gz
 	alttr="$PWD"/alttr-$thislevel-s$srcindex.nii.gz
 
@@ -202,7 +202,7 @@ for level in $(seq 0 $maxlevel) ; do
     sleeptime=$[$level*5+5]
     sleep $sleeptime
     until [[ $masksready -ge $minready ]]
-    do 
+    do
 	(( loopcount += 1 ))
 	[[ loopcount -gt 500 ]] && fatal "Waited too long for registration results"
 	prevmasksread=$masksready
@@ -216,16 +216,16 @@ for level in $(seq 0 $maxlevel) ; do
 
 # Generate reference for atlas selection (fused from all)
     echo "Building reference atlas for selection at level $thislevel"
-    for i in masktr-$thislevel-s* ; do 
+    for i in masktr-$thislevel-s* ; do
 	[[ -s $i ]] || mv $i failed-$i
     done
     set -- masktr-$thislevel-s*
     thissize=$#
-    [[ $thissize -lt 7 ]] && fatal "Mask generation failed at level $thislevel" 
+    [[ $thissize -lt 7 ]] && fatal "Mask generation failed at level $thislevel"
     set -- $(echo $@ | sed 's/ / -add /g')
     seg_maths $@ -div $thissize tmask-$thislevel-atlas.nii.gz
-# Generate target margin mask for similarity ranking and apply 
-    seg_maths tmask-$thislevel-atlas.nii.gz -thr 0.$thisthr -bin tmask-$thislevel.nii.gz 
+# Generate target margin mask for similarity ranking and apply
+    seg_maths tmask-$thislevel-atlas.nii.gz -thr 0.$thisthr -bin tmask-$thislevel.nii.gz
     dilation tmask-$thislevel.nii.gz tmask-$thislevel-wide.nii.gz -iterations 1 >>noisy.log 2>&1
     erosion tmask-$thislevel.nii.gz tmask-$thislevel-narrow.nii.gz -iterations 1 >>noisy.log 2>&1
     subtract tmask-$thislevel-wide.nii.gz tmask-$thislevel-narrow.nii.gz emargin-$thislevel.nii.gz >>noisy.log 2>&1
@@ -244,16 +244,16 @@ for level in $(seq 0 $maxlevel) ; do
     [ $nselected -lt 9 ] && nselected=7
     split -l $nselected ranking-$thislevel.csv
     mv xaa selection-$thislevel.csv
-    [ -e xab ] && cat x?? > unselected-$thislevel.csv 
+    [ -e xab ] && cat x?? > unselected-$thislevel.csv
     echo "Selected $nselected at $thislevel"
-# Build label from selection 
+# Build label from selection
     set -- $(cat selection-$thislevel.csv | while read -r item ; do echo masktr-$thislevel-s$item.nii.gz ; done)
      #TODO: check for missing masktr-*
     thissize=$#
-    [[ $thissize -lt 7 ]] && fatal "Mask generation failed at level $thislevel" 
+    [[ $thissize -lt 7 ]] && fatal "Mask generation failed at level $thislevel"
     set -- $(echo $@ | sed 's/ / -add /g')
-    seg_maths $@ -div $thissize tmask-$thislevel-sel-atlas.nii.gz 
-    seg_maths tmask-$thislevel-sel-atlas.nii.gz -thr 0.$thisthr -bin tmask-$thislevel-sel.nii.gz 
+    seg_maths $@ -div $thissize tmask-$thislevel-sel-atlas.nii.gz
+    seg_maths tmask-$thislevel-sel-atlas.nii.gz -thr 0.$thisthr -bin tmask-$thislevel-sel.nii.gz
     assess tmask-$thislevel-sel.nii.gz
     prevlevel=$thislevel
 # Data mask (skip on last iteration)
@@ -268,11 +268,11 @@ done
 
 echo -n "SI:" ; labelStats tmask-$thislevel.nii.gz tmask-$thislevel-sel.nii.gz -false
 
-set -- $(cat selection-$thislevel.csv | while read -r item ; do echo alttr-$thislevel-s$item.nii.gz ; done) 
+set -- $(cat selection-$thislevel.csv | while read -r item ; do echo alttr-$thislevel-s$item.nii.gz ; done)
 #TODO: check for missing alttr-*
 set -- $(echo $@ | sed 's/ / -add /g')
 seg_maths $@ -div $thissize alt-$thislevel-sel-atlas.nii.gz
-seg_maths alt-$thislevel-sel-atlas.nii.gz -thr 0.$thisthr -bin alt-$thislevel-sel.nii.gz 
+seg_maths alt-$thislevel-sel-atlas.nii.gz -thr 0.$thisthr -bin alt-$thislevel-sel.nii.gz
 seg_maths alt-$thislevel-sel.nii.gz -mul tmask-$thislevel-sel.nii.gz andmask.nii.gz
 seg_maths alt-$thislevel-sel.nii.gz -add tmask-$thislevel-sel.nii.gz -bin ormask.nii.gz
 

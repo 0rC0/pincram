@@ -9,13 +9,6 @@ FSLDIR="/usr/share/fsl/5.0/"
 irtk_bin_dir="$HOME/software/IRTK/bin"
 slicer_modules=$software_dir/slicer/Slicer-4.6.2-linux-amd64/lib/Slicer-4.6/cli-modules/
 
-
-##### ------ Do Not Modify under this line -----------
-
-PATH=$nifty_reg_bin_dir:$nifty_seg_bin_dir:$irtk_bin_dir:$slicer_modules:$PATH
-
-LD_LIBRARY_PATH=$slicer_modules:$LD_LIBRARY_PATH
-
 ### FSL -- own installation (no package)
 . $FSLDIR/etc/fslconf/fsl.sh
 PATH=$FSLDIR/bin:$PATH
@@ -23,6 +16,12 @@ export FSLDIR
 
 ### FSL -- installation from .deb package
 #. /etc/fsl/fsl.sh
+
+##### ------ Do Not Modify under this line -----------
+
+PATH=$nifty_reg_bin_dir:$nifty_seg_bin_dir:$irtk_bin_dir:$slicer_modules:$PATH
+
+LD_LIBRARY_PATH=$slicer_modules:$LD_LIBRARY_PATH
 
 export PATH LD_LIBRARY_PATH
 
