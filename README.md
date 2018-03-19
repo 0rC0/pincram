@@ -18,7 +18,7 @@ PINCRAM is a method for masking cranial MR images based on multiple atlases
 
 #### Example
 ```
-for nii in /[niftifir]/\*.nii.gz ; do ./pincram $nii -result [resultdir]/${(echo $nii | cut -c[num]-[num])}_pincram.nii.gz -altresult ${(echo $nii | cut -c[num]-[num])}_pincram_alt.nii.gz -atlas [see usage] -par $(nproc) -levels 1 ; done`
+for nii in /[niftidir]/\*.nii.gz ; do ./pincram $nii -result [resultdir]/`echo $nii | cut -c[num]-[num]`_pincram.nii.gz -altresult `echo $nii | cut -c[num]-[num]`_pincram_alt.nii.gz -atlas [see usage] -par $(nproc) -levels 1 ; done`
 ```
 
 #### Usage:
@@ -52,7 +52,7 @@ Usage: ./pincram <input> <options> <-result result.nii.gz> -altresult altresult.
               Has to contain limages/full/m{1..n}.nii.gz, lmasks/full/m{1..n}.nii.gz and posnorm/m{1..n}.dof.gz
               Alternatively, it can point to a csv spreadsheet: first row should be base directory for atlas
               files. Entries should be relative to base directory. Each row refers to one atlas.  
-              Column 1: atlasname, column 2: full image, column 3: margin image, column 4: mask, column 5: transformation 
+              Column 1: atlasname, column 2: full image, column 3: margin image, column 4: mask, column 5: transformation
               (.dof format) for positional normalization. Atlasname should be unique across entries.
 
 -tpn        : Rigid transformation for positional normalization of the target image (optional)
